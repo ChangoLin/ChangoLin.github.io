@@ -1,0 +1,23 @@
+@use "./variables.scss" as *;
+
+// Keep the reading surface quiet while preserving Quartz's responsive three-column layout.
+:root {
+  --wiki-panel-radius: 0.5rem;
+}
+
+@media all and ($desktop) {
+  .page > #quartz-body .sidebar {
+    padding-top: 2rem;
+  }
+
+  .explorer,
+  .graph,
+  .backlinks,
+  .toc {
+    border-radius: var(--wiki-panel-radius);
+  }
+}
+
+article {
+  line-height: 1.78;
+}

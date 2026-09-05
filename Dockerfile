@@ -1,8 +1,18 @@
-FROM jekyll/jekyll
+FROM node:22-slim AS builder
 
-COPY Gemfile .
-COPY Gemfile.lock .
+# install git to install plugins
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
-RUN bundle install --quiet --clean
+WORKDIR /usr/src/app
+COPY package.json .
+COPY package-lock.json* .
+COPY .npmrc* .
+COPY quartz/ ./quartz/
+COPY quartz.lock.json* .
+RUN npm install; npx quartz plugin install
 
-CMD ["jekyll", "serve"]
+FROM node:22-slim
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/ /usr/src/app/
+COPY . .
+CMD ["npx", "quartz", "build", "--serve"]

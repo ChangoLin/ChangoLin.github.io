@@ -1,9 +1,14 @@
-# project
-_site
-.sass-cache
-.vagrant
-
-# general
 .DS_Store
-Thumbs.db
-ehthumbs.db
+.gitignore
+node_modules
+public
+prof
+tsconfig.tsbuildinfo
+.obsidian
+.quartz-cache
+private/
+.replit
+replit.nix
+.quartz/
+quartz/cli/tui/dist/
+.turbo/
