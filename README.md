@@ -1,4 +1,4 @@
-# 林宇澄的知识库
+# 知识花园
 
 这是 [changolin.github.io](https://changolin.github.io/) 的源代码，使用 [Quartz 5](https://quartz.jzhao.xyz/) 将 Obsidian Markdown 发布为可搜索、可链接的 Wiki。
 

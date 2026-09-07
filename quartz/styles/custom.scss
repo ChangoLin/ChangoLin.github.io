@@ -1,23 +1,412 @@
 @use "./variables.scss" as *;
 
-// Keep the reading surface quiet while preserving Quartz's responsive three-column layout.
+// A quiet, paper-like surface with reusable proportions for the sidebar furniture.
 :root {
-  --wiki-panel-radius: 0.5rem;
+  --wiki-panel-radius: 0.625rem;
+  --wiki-panel-background: color-mix(in srgb, var(--light) 88%, var(--lightgray));
+  --wiki-panel-shadow: 0 0.3rem 1rem color-mix(in srgb, var(--dark) 7%, transparent);
+  --wiki-panel-shadow-hover: 0 0.55rem 1.4rem color-mix(in srgb, var(--dark) 11%, transparent);
+}
+
+// Sidebar cards -------------------------------------------------------------
+.explorer,
+.graph,
+.backlinks,
+.toc {
+  box-sizing: border-box;
+  border: 1px solid var(--lightgray);
+  border-radius: var(--wiki-panel-radius);
+  background-color: var(--wiki-panel-background);
+  box-shadow: var(--wiki-panel-shadow);
+  padding: 0.9rem 1rem;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--secondary) 32%, var(--lightgray));
+    box-shadow: var(--wiki-panel-shadow-hover);
+    transform: translateY(-2px);
+  }
+}
+
+.graph > h3,
+.backlinks > h3,
+button.toc-header h3,
+button.desktop-explorer h2 {
+  color: var(--dark);
+  letter-spacing: 0.02em;
+}
+
+.graph > .graph-outer {
+  margin-bottom: 0;
+  border-radius: calc(var(--wiki-panel-radius) - 0.15rem);
+  background-color: var(--light);
+}
+
+.backlinks > ul.overflow > li,
+ul.toc-content.overflow > li {
+  margin: 0.18rem 0;
+}
+
+.backlinks > ul.overflow > li > a,
+ul.toc-content.overflow > li > a {
+  display: block;
+  border-radius: calc(var(--wiki-panel-radius) - 0.25rem);
+  padding-block: 0.18rem;
+
+  &:hover {
+    background-color: var(--highlight);
+  }
+}
+
+ul.toc-content.overflow > li > a.in-view {
+  color: var(--secondary);
+  opacity: 1;
 }
 
 @media all and ($desktop) {
   .page > #quartz-body .sidebar {
     padding-top: 2rem;
   }
+}
 
-  .explorer,
-  .graph,
-  .backlinks,
-  .toc {
+// Explorer ------------------------------------------------------------------
+.explorer-content {
+  margin-top: 0.7rem;
+
+  .folder-outer > ul {
+    border-left-color: color-mix(in srgb, var(--secondary) 24%, var(--lightgray));
+  }
+
+  ul li > a,
+  .folder-container {
+    border-radius: calc(var(--wiki-panel-radius) - 0.25rem);
+    transition:
+      color 0.18s ease,
+      background-color 0.18s ease,
+      opacity 0.18s ease,
+      border-color 0.18s ease;
+  }
+
+  ul li > a {
+    display: block;
+    border-left: 3px solid transparent;
+    background-color: transparent;
+    padding: 0.2rem 0.45rem;
+    line-height: 1.45;
+
+    &:hover {
+      color: var(--secondary);
+      background-color: var(--highlight);
+      opacity: 1;
+    }
+
+    &.active {
+      border-left-color: var(--secondary);
+      background-color: var(--highlight);
+      color: var(--dark);
+      opacity: 1;
+    }
+  }
+
+  .folder-container {
+    padding: 0.12rem 0.35rem;
+
+    &:hover {
+      background-color: var(--highlight);
+    }
+  }
+}
+
+// Homepage hero -------------------------------------------------------------
+body[data-slug="index"] {
+  .article-title,
+  article > h1:first-child {
+    margin-top: 2.5rem;
+    margin-bottom: 1.15rem;
+    color: var(--dark);
+    font-family: var(--headerFont);
+    font-size: clamp(2.25rem, 4.8vw, 3.15rem);
+    line-height: 1.2;
+    letter-spacing: 0.045em;
+    text-wrap: balance;
+  }
+
+  .content-meta {
+    margin-bottom: 1.5rem;
+    color: var(--gray);
+  }
+
+  article > p:first-of-type {
+    max-width: 46rem;
+    margin: 0 0 2rem;
+    color: var(--gray);
+    font-size: clamp(1.08rem, 1.8vw, 1.22rem);
+    line-height: 1.85;
+    letter-spacing: 0.012em;
+    text-wrap: pretty;
+  }
+}
+
+// Reading rhythm ------------------------------------------------------------
+article {
+  line-height: 1.78;
+
+  > h1,
+  > h2,
+  > h3,
+  > h4,
+  > h5,
+  > h6 {
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+
+  > h2 {
+    margin-top: 2.35rem;
+  }
+
+  > h3 {
+    margin-top: 1.9rem;
+  }
+}
+
+blockquote {
+  margin: 1.5rem 0;
+  border-left-color: var(--secondary);
+  border-radius: 0 var(--wiki-panel-radius) var(--wiki-panel-radius) 0;
+  background-color: var(--wiki-panel-background);
+  padding: 0.8rem 1.15rem;
+  color: var(--darkgray);
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+hr {
+  margin-block: 2.5rem;
+  background-color: var(--lightgray);
+}
+
+pre,
+figure[data-rehype-pretty-code-figure] > [data-rehype-pretty-code-title] {
+  border-radius: var(--wiki-panel-radius);
+}
+
+pre {
+  border-color: var(--lightgray);
+  background-color: var(--wiki-panel-background);
+  box-shadow: 0 0.15rem 0.55rem color-mix(in srgb, var(--dark) 5%, transparent);
+}
+
+article :not(pre) > code {
+  border: 1px solid var(--lightgray);
+  border-radius: 0.3rem;
+  background-color: var(--wiki-panel-background);
+  padding: 0.12em 0.32em;
+}
+
+// Links ---------------------------------------------------------------------
+a {
+  text-decoration-color: color-mix(in srgb, var(--tertiary) 70%, transparent);
+  text-underline-offset: 0.18em;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    text-decoration-color 0.18s ease;
+
+  &:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+  }
+
+  &.internal {
+    box-decoration-break: clone;
+    transition:
+      color 0.18s ease,
+      background-color 0.18s ease,
+      text-decoration-color 0.18s ease;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--highlight) 82%, var(--secondary));
+    }
+  }
+
+  &.external .external-icon {
+    margin-inline: 0.18em;
+    opacity: 0.72;
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+
+    > path {
+      fill: currentColor;
+    }
+  }
+
+  &.external:hover .external-icon {
+    opacity: 1;
+    transform: translate(0.06em, -0.06em);
+  }
+}
+
+// Search --------------------------------------------------------------------
+.search > .search-button {
+  min-height: 2.35rem;
+  border-color: var(--lightgray);
+  border-radius: var(--wiki-panel-radius);
+  background-color: var(--wiki-panel-background);
+  padding-right: 0.9rem;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--secondary) 42%, var(--lightgray));
+    background-color: var(--highlight);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--secondary) 22%, transparent);
+  }
+}
+
+.search > .search-container > .search-space {
+  > input {
+    border-radius: var(--wiki-panel-radius);
+    padding: 0.72em 1em;
+    transition:
+      border-color 0.18s ease,
+      box-shadow 0.18s ease;
+
+    &:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--secondary) 22%, transparent);
+    }
+  }
+
+  > .search-layout {
     border-radius: var(--wiki-panel-radius);
   }
 }
 
-article {
-  line-height: 1.78;
+// Footer --------------------------------------------------------------------
+footer {
+  box-sizing: border-box;
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+  border-top: 1px solid var(--lightgray);
+  padding: 1.4rem 1rem 0;
+  color: var(--gray);
+  text-align: center;
+  opacity: 1;
+
+  p,
+  ul,
+  li {
+    color: var(--gray);
+  }
+
+  ul {
+    justify-content: center;
+    margin-top: 0.35rem;
+    gap: 1.1rem;
+  }
+
+  a {
+    color: var(--gray);
+
+    &:hover {
+      color: var(--tertiary);
+    }
+  }
+}
+
+// Scrollbars ----------------------------------------------------------------
+* {
+  scrollbar-color: var(--gray) transparent;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 0.45rem;
+  height: 0.45rem;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 1px solid var(--light);
+  border-radius: var(--wiki-panel-radius);
+  background-color: var(--gray);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--tertiary);
+}
+
+// Preserve the compact mobile explorer while giving content cards room to breathe.
+@media all and ($mobile) {
+  :root {
+    --wiki-panel-radius: 0.55rem;
+  }
+
+  .explorer {
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0;
+
+    &:hover {
+      box-shadow: none;
+      transform: none;
+    }
+  }
+
+  .graph,
+  .backlinks,
+  .toc {
+    padding: 0.75rem;
+  }
+
+  body[data-slug="index"] {
+    .article-title,
+    article > h1:first-child {
+      margin-top: 1.75rem;
+      font-size: clamp(2.1rem, 11vw, 2.6rem);
+      letter-spacing: 0.025em;
+    }
+
+    article > p:first-of-type {
+      margin-bottom: 1.6rem;
+      font-size: 1.05rem;
+    }
+  }
+
+  blockquote {
+    padding: 0.7rem 0.9rem;
+  }
+
+  footer {
+    margin-top: 2rem;
+    padding-inline: 0.5rem;
+
+    ul {
+      flex-wrap: wrap;
+      gap: 0.65rem 1rem;
+    }
+  }
 }

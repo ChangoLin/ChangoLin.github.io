@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
 configuration:
-  pageTitle: 林宇澄的知识库
-  pageTitleSuffix: " · 林宇澄的知识库"
+  pageTitle: 知识花园
+  pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
   analytics: null
@@ -116,7 +116,7 @@ plugins:
       enableSiteMap: true
       enableRSS: true
   - source: "@quartz-community/favicon"
-    enabled: false
+    enabled: true
   - source: "@quartz-community/og-image"
     enabled: false
   - source: "@quartz-community/cname"

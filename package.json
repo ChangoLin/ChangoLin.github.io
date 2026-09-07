@@ -1,10 +1,10 @@
 {
   "name": "changolin-knowledge-wiki",
-  "description": "林宇澄的公开个人知识库",
+  "description": "公开的个人知识库（Quartz 5 站点）",
   "private": true,
   "version": "5.0.0",
   "type": "module",
-  "author": "Yucheng Lin",
+  "author": "ChangoLin",
   "license": "MIT",
   "homepage": "https://changolin.github.io",
   "repository": {
