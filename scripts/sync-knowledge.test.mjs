@@ -58,6 +58,7 @@ test("publishes only Markdown with exact boolean publish: true and removes stale
 
   assert.equal(result.publishedCount, 2)
   assert.deepEqual(await filesBelow(contentDir), [
+    "garden.md",
     "index.md",
     "keep.md",
     "knowledge/notes/common/public.md",
@@ -196,13 +197,188 @@ test("sanitizes local raw HTML URL attributes on every element without breaking 
 
   assert.match(output, /<br\/>/)
   assert.match(output, /<a href="\.\/target\.md">公开笔记<\/a>/)
-  assert.match(output, /<iframe src="https:\/\/example\.com\/public"><\/iframe>/)
-  assert.match(output, /<link href="https:\/\/example\.com\/site\.css">/)
   assert.match(
     output,
     /<source src="https:\/\/example\.com\/public\.pdf" srcset="https:\/\/example\.com\/public\.png 2x">/,
   )
+  assert.doesNotMatch(output, /<\/?(?:iframe|link|script)\b/i)
   assert.doesNotMatch(output, /\.\.\/private\.(?:pdf|js|md|png)|private-2x\.png/)
+})
+
+test("removes script markup together with its inline body from published Markdown", async (t) => {
+  const { sourceDir, contentDir } = await fixture(t)
+  await put(
+    sourceDir,
+    "notes/start.md",
+    [
+      "---",
+      "publish: true",
+      "---",
+      '<p class="safe">保留安全内容</p>',
+      '<script type="text/javascript">window.publishedSecret = "leaked"</script>',
+      '<strong data-note="safe">继续保留</strong>',
+    ].join("\n"),
+  )
+
+  await syncKnowledge({ sourceDir, contentDir })
+  const output = await readFile(path.join(contentDir, "knowledge/notes/start.md"), "utf8")
+
+  assert.match(output, /<p class="safe">保留安全内容<\/p>/)
+  assert.match(output, /<strong data-note="safe">继续保留<\/strong>/)
+  assert.doesNotMatch(output, /<\/?script\b/i)
+  assert.doesNotMatch(output, /window\.publishedSecret|leaked/)
+})
+
+test("removes event-handler attributes while preserving safe authored HTML", async (t) => {
+  const { sourceDir, contentDir } = await fixture(t)
+  await put(
+    sourceDir,
+    "notes/start.md",
+    [
+      "---",
+      "publish: true",
+      "---",
+      '<button class="safe" onclick="alert(1)">安全按钮</button>',
+      '<img src="https://example.com/image.png" alt="远程图片" onerror="steal()">',
+    ].join("\n"),
+  )
+
+  await syncKnowledge({ sourceDir, contentDir })
+  const output = await readFile(path.join(contentDir, "knowledge/notes/start.md"), "utf8")
+
+  assert.match(output, /<button class="safe">安全按钮<\/button>/)
+  assert.match(output, /<img src="https:\/\/example\.com\/image\.png" alt="远程图片">/)
+  assert.doesNotMatch(output, /\son[a-z\d:-]*\s*=/i)
+  assert.doesNotMatch(output, /alert\(1\)|steal\(\)/)
+})
+
+test("removes javascript URL attributes without discarding safe element content", async (t) => {
+  const { sourceDir, contentDir } = await fixture(t)
+  await put(
+    sourceDir,
+    "notes/start.md",
+    [
+      "---",
+      "publish: true",
+      "---",
+      '<form class="safe" action="javascript:steal()"><button>提交</button></form>',
+      '<button class="safe" formaction="JaVaScRiPt:alert(1)">另存</button>',
+    ].join("\n"),
+  )
+
+  await syncKnowledge({ sourceDir, contentDir })
+  const output = await readFile(path.join(contentDir, "knowledge/notes/start.md"), "utf8")
+
+  assert.match(output, /<form class="safe"><button>提交<\/button><\/form>/)
+  assert.match(output, /<button class="safe">另存<\/button>/)
+  assert.doesNotMatch(output, /javascript\s*:/i)
+  assert.doesNotMatch(output, /steal\(\)|alert\(1\)/)
+})
+
+test("escapes attribute values on rebuild so embedded quotes cannot inject handlers", async (t) => {
+  const { sourceDir, contentDir } = await fixture(t)
+  await put(
+    sourceDir,
+    "notes/start.md",
+    [
+      "---",
+      "publish: true",
+      "---",
+      "<div title='x\" onmouseover=\"injected(1)' onclick=remove()>正文</div>",
+    ].join("\n"),
+  )
+
+  await syncKnowledge({ sourceDir, contentDir })
+  const output = await readFile(path.join(contentDir, "knowledge/notes/start.md"), "utf8")
+
+  assert.match(output, /<div title="x&quot; onmouseover=&quot;injected\(1\)">正文<\/div>/)
+  assert.doesNotMatch(output, /\son[a-z\d:-]*\s*="/i)
+  assert.doesNotMatch(output, /remove\(\)/)
+})
+
+test("removes iframe srcdoc and inline style surfaces while preserving safe authored content", async (t) => {
+  const { sourceDir, contentDir } = await fixture(t)
+  await put(
+    sourceDir,
+    "notes/start.md",
+    [
+      "---",
+      "publish: true",
+      "---",
+      "[公开网站](https://example.com/public)",
+      '<section class="safe" data-note="kept" style="background:url(javascript:steal())">',
+      '  <em style="color: red" title="safe">保留安全 HTML</em>',
+      "</section>",
+      '<iframe src="https://example.com/frame" srcdoc="<script>window.top.steal()</script>">iframe descendant</iframe>',
+    ].join("\n"),
+  )
+
+  await syncKnowledge({ sourceDir, contentDir })
+  const output = await readFile(path.join(contentDir, "knowledge/notes/start.md"), "utf8")
+
+  assert.match(output, /\[公开网站\]\(https:\/\/example\.com\/public\)/)
+  assert.match(output, /<section class="safe" data-note="kept">/)
+  assert.match(output, /<em title="safe">保留安全 HTML<\/em>/)
+  assert.doesNotMatch(
+    output,
+    /\sstyle\s*=|srcdoc|<\/?iframe\b|iframe descendant|window\.top\.steal/i,
+  )
+})
+
+test("strips active raw HTML elements and their executable descendants", async (t) => {
+  const { sourceDir, contentDir } = await fixture(t)
+  await put(
+    sourceDir,
+    "notes/start.md",
+    [
+      "---",
+      "publish: true",
+      "---",
+      '<p class="safe">之前</p>',
+      '<object data="https://example.com/payload"><script>objectScript()</script>object descendant</object>',
+      '<embed src="https://example.com/plugin">',
+      '<meta http-equiv="refresh" content="0;url=javascript:metaRefresh()">',
+      '<link rel="stylesheet" href="https://example.com/active.css">',
+      '<style>@import "https://example.com/active.css"; .x { background: url(javascript:cssRun()) }</style>',
+      '<p class="safe">之后</p>',
+    ].join("\n"),
+  )
+
+  await syncKnowledge({ sourceDir, contentDir })
+  const output = await readFile(path.join(contentDir, "knowledge/notes/start.md"), "utf8")
+
+  assert.match(output, /<p class="safe">之前<\/p>/)
+  assert.match(output, /<p class="safe">之后<\/p>/)
+  assert.doesNotMatch(output, /<\/?(?:object|embed|meta|link|style|script)\b/i)
+  assert.doesNotMatch(
+    output,
+    /objectScript|object descendant|plugin|metaRefresh|active\.css|cssRun/i,
+  )
+})
+
+test("strips raw SVG and MathML containers without retaining active descendants", async (t) => {
+  const { sourceDir, contentDir } = await fixture(t)
+  await put(
+    sourceDir,
+    "notes/start.md",
+    [
+      "---",
+      "publish: true",
+      "---",
+      '<div class="safe">保留之前</div>',
+      '<svg viewBox="0 0 10 10"><a href="javascript:svgRun()"><text>svg descendant</text></a></svg>',
+      '<math><annotation-xml encoding="text/html"><img src="x" onerror="mathRun()">math descendant</annotation-xml></math>',
+      '<div class="safe">保留之后</div>',
+    ].join("\n"),
+  )
+
+  await syncKnowledge({ sourceDir, contentDir })
+  const output = await readFile(path.join(contentDir, "knowledge/notes/start.md"), "utf8")
+
+  assert.match(output, /<div class="safe">保留之前<\/div>/)
+  assert.match(output, /<div class="safe">保留之后<\/div>/)
+  assert.doesNotMatch(output, /<\/?(?:svg|math|annotation-xml|text)\b/i)
+  assert.doesNotMatch(output, /svgRun|svg descendant|mathRun|math descendant/i)
 })
 
 test("sanitizes local reference-style links and definitions while preserving published and HTTP(S) references", async (t) => {
@@ -274,27 +450,55 @@ test("supports CLI and environment source-path overrides with CLI taking precede
   assert.equal(resolveSourcePath([], {}, fallback), path.resolve(fallback))
 })
 
-test("landing page lists only selected public notes with working category and article targets", async (t) => {
+test("homepage is a concise Chinese portal to the knowledge garden and 名字打架", async (t) => {
+  const { sourceDir, contentDir } = await fixture(t)
+  await syncKnowledge({ sourceDir, contentDir })
+  const home = await readFile(path.join(contentDir, "index.md"), "utf8")
+
+  assert.match(home, /class="portal-grid"/)
+  assert.match(home, /class="portal-card[^"]*" href="\/garden"/)
+  assert.match(home, /title: "探索"/)
+  assert.match(home, /description: "进入知识花园或名字打架"/)
+  assert.match(home, /选一个入口，开始探索。/)
+  assert.match(home, /aria-label="进入知识花园"/)
+  assert.match(home, />公开笔记</)
+  assert.match(home, />知识花园</)
+  assert.match(home, /阅读关于人工智能、工程实践与生活方法的笔记。/)
+  assert.match(home, />进入花园 <span>→<\/span>/)
+  assert.match(home, /class="portal-card[^"]*" href="\/name-fight\/"/)
+  assert.match(home, /aria-label="进入名字打架游戏"/)
+  assert.match(home, />互动游戏</)
+  assert.match(home, />名字打架</)
+  assert.match(home, /输入两个名字，看看谁会胜出。/)
+  assert.match(home, />开始对决 <span>→<\/span>/)
+  assert.deepEqual(
+    [...home.matchAll(/class="portal-card[^"]*" href="([^"]+)"/g)].map((match) => match[1]),
+    ["/garden", "/name-fight/"],
+  )
+  assert.doesNotMatch(home, /共 \d+ 篇公开笔记|knowledge\/notes/)
+})
+
+test("garden lists only selected public notes with working category and article targets", async (t) => {
   const { sourceDir, contentDir } = await fixture(t)
   await put(sourceDir, "notes/tech/公开 文章.md", "---\npublish: true\n---\n公开内容")
   await put(sourceDir, "notes/common/方法.md", "---\npublish: true\n---\n公开内容")
   await put(sourceDir, "notes/tech/hidden.md", "---\npublish: false\n---\n秘密")
   await syncKnowledge({ sourceDir, contentDir })
-  const home = await readFile(path.join(contentDir, "index.md"), "utf8")
-  assert.match(home, /共 2 篇公开笔记/)
-  assert.match(home, /人工智能与工程 · 1 篇/)
-  assert.match(home, /生活与方法 · 1 篇/)
-  assert.doesNotMatch(home, /hidden|秘密/)
-  for (const [, href] of home.matchAll(/\]\(([^)]+)\)/g)) {
-    const target = path.join(contentDir, decodeURIComponent(href))
+  const garden = await readFile(path.join(contentDir, "garden.md"), "utf8")
+  assert.match(garden, /共 2 篇公开笔记/)
+  assert.match(garden, /人工智能与工程 · 1 篇/)
+  assert.match(garden, /生活与方法 · 1 篇/)
+  assert.doesNotMatch(garden, /hidden|秘密/)
+  for (const [, href] of garden.matchAll(/\]\(([^)]+)\)/g)) {
+    const target = path.join(contentDir, decodeURIComponent(href.replace(/^\//, "")))
     if (href.endsWith("/")) assert.ok((await readdir(target)).length)
     else assert.ok(await readFile(target, "utf8"))
   }
 })
 
-test("empty landing page has no dead category links", async () => {
-  const { landingPage } = await import("./sync-knowledge.mjs")
-  const home = landingPage([])
-  assert.match(home, /目前没有公开内容/)
-  assert.doesNotMatch(home, /\]\(/)
+test("empty garden has no dead category links", async () => {
+  const { gardenPage } = await import("./sync-knowledge.mjs")
+  const garden = gardenPage([])
+  assert.match(garden, /目前没有公开内容/)
+  assert.doesNotMatch(garden, /\]\(/)
 })
