@@ -27,6 +27,56 @@ try {
     page.on("pageerror", (error) => errors.push(error.message))
     await page.goto(base, { waitUntil: "networkidle" })
     await page.waitForSelector(".explorer-content a", { state: "attached" })
+    assert.equal(await page.title(), "探索")
+    const portalCards = page.locator(".portal-card")
+    assert.equal(await portalCards.count(), 2, "portal has exactly two destinations")
+    assert.deepEqual(
+      await portalCards.evaluateAll((cards) => cards.map((card) => card.getAttribute("href"))),
+      ["./garden", "./name-fight/"],
+    )
+    assert.deepEqual(
+      await portalCards.evaluateAll((cards) =>
+        cards.map((card) => card.getAttribute("aria-label")),
+      ),
+      ["进入知识花园", "进入名字打架游戏"],
+    )
+    for (const card of await portalCards.all()) {
+      const bounds = await card.boundingBox()
+      assert.ok(bounds.width >= 44 && bounds.height >= 44, "portal card is a touch target")
+    }
+    const [firstCard, secondCard] = await Promise.all([
+      portalCards.nth(0).boundingBox(),
+      portalCards.nth(1).boundingBox(),
+    ])
+    if (width <= 800) {
+      assert.ok(secondCard.y > firstCard.y + firstCard.height, "mobile cards stack vertically")
+    } else {
+      assert.ok(Math.abs(secondCard.y - firstCard.y) < 2, "desktop cards share a row")
+    }
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      `${width} portal: no page overflow`,
+    )
+    await page.screenshot({ path: path.join(output, `${width}-portal-light.png`), fullPage: true })
+    await page.locator(".darkmode").click()
+    assert.equal(await page.locator("html").getAttribute("saved-theme"), "dark")
+    await page.waitForTimeout(250)
+    await page.screenshot({ path: path.join(output, `${width}-portal-dark.png`), fullPage: true })
+    await page.locator(".darkmode").click()
+    report.push({
+      width,
+      page: "portal",
+      overflow: false,
+      cards: 2,
+      theme: true,
+      errors: [...errors],
+    })
+    await page.evaluate(() => {
+      window.__spaProbe = true
+    })
+    await page.locator('.portal-card[aria-label="进入知识花园"]').click()
+    await page.waitForURL(/\/garden$/)
+    assert.equal(await page.evaluate(() => window.__spaProbe), true, "portal navigation uses SPA")
     const publicArticles = await page
       .locator("article li a.internal")
       .evaluateAll((links) => links.slice(2).map((link) => link.href))
@@ -36,10 +86,7 @@ try {
       .getAttribute("href")
     assert.ok(article, "home links to an existing public article")
     const articleUrl = new URL(article, page.url()).href
-    await page.evaluate(() => {
-      window.__spaProbe = true
-    })
-    for (const kind of ["home", "article"]) {
+    for (const kind of ["garden", "article"]) {
       if (kind === "article") {
         await page.locator("article a").filter({ hasText: "DeepSeek" }).click()
         await page.waitForURL(articleUrl)
@@ -72,7 +119,7 @@ try {
         const bounds = await page.locator(selector).boundingBox()
         assert.ok(bounds.width >= 44 && bounds.height >= 44, `${selector}: 44px touch target`)
       }
-      if (kind === "home") {
+      if (kind === "garden") {
         assert.equal(await page.title(), "知识花园")
         assert.equal(await page.locator("article li a.internal").count(), 15)
         const firstArticle = await page
@@ -81,11 +128,11 @@ try {
           .locator("a")
           .first()
           .boundingBox()
-        assert.ok(firstArticle.height >= 44, "home article entries have generous touch targets")
+        assert.ok(firstArticle.height >= 44, "garden article entries have generous touch targets")
       }
       await page.screenshot({
         path: path.join(output, `${width}-${kind}-light.png`),
-        fullPage: kind === "home",
+        fullPage: kind === "garden",
       })
       if (width <= 800) {
         const menu = page.locator(".mobile-explorer")
@@ -122,7 +169,7 @@ try {
       await page.waitForTimeout(250) // Let theme color transitions finish before capture.
       await page.screenshot({
         path: path.join(output, `${width}-${kind}-dark.png`),
-        fullPage: kind === "home",
+        fullPage: kind === "garden",
       })
       await page.locator(".darkmode").click()
       report.push({

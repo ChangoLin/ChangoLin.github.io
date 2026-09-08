@@ -30,4 +30,11 @@ npm run sync:knowledge -- /path/to/knowledge
 KNOWLEDGE_SOURCE=/path/to/knowledge npm run sync:knowledge
 ```
 
-推送到 `master` 后，GitHub Actions 会构建并部署 GitHub Pages。
+## 名字打架部署顺序
+
+Pages 工作流会在 Quartz 构建后，将私有游戏仓库提供的已编译
+`apps/name-fight/` 整体放入站点的 `/name-fight/`。为避免发布不完整或占位应用，工作流要求
+`apps/name-fight/index.html` 已存在，否则会立即失败；本仓库不生成或保存虚构的游戏 bundle。
+
+因此，应先由私有游戏仓库更新真实的 `apps/name-fight/` 构建产物，再触发本仓库的
+`master` Pages 部署。推送到 `master` 后，GitHub Actions 会构建并部署组合站点。

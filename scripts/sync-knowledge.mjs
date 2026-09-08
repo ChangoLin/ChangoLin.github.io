@@ -224,6 +224,86 @@ function parseHtmlTag(tag) {
   return { name, closing, attributes, selfClosing: /\/\s*>$/.test(tag) }
 }
 
+const htmlUrlAttributes = new Set([
+  "action",
+  "background",
+  "cite",
+  "data",
+  "formaction",
+  "href",
+  "longdesc",
+  "poster",
+  "src",
+  "srcset",
+  "xlink:href",
+])
+
+const discardedHtmlContainers = new Set([
+  "applet",
+  "iframe",
+  "math",
+  "object",
+  "script",
+  "style",
+  "svg",
+])
+
+const discardedHtmlElements = new Set(["base", "embed", "frame", "link", "meta"])
+const discardedHtmlAttributes = new Set(["srcdoc", "style"])
+
+function decodesToJavascriptUrl(value) {
+  const decoded = value
+    .replace(/&#(?:x([\da-f]+)|(\d+));?/gi, (_match, hexadecimal, decimal) =>
+      String.fromCodePoint(Number.parseInt(hexadecimal ?? decimal, hexadecimal ? 16 : 10)),
+    )
+    .replace(/&colon;/gi, ":")
+    .replace(/[\u0000-\u0020\u007f]+/g, "")
+  return /^javascript:/i.test(decoded)
+}
+
+function hasJavascriptUrl(attribute, value) {
+  if (!htmlUrlAttributes.has(attribute)) return false
+  if (attribute !== "srcset") return decodesToJavascriptUrl(value)
+  return value
+    .split(",")
+    .some((candidate) => decodesToJavascriptUrl(candidate.trim().split(/\s+/, 1)[0]))
+}
+
+// Applied only when the sanitizer must rebuild a tag after removing unsafe
+// attributes. Without escaping, a kept attribute value delimited by a
+// different quote could be re-wrapped and break out to inject new attributes.
+function escapeAttributeValue(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;")
+}
+
+function afterDiscardedContainer(markdown, cursor, containerName) {
+  let depth = 1
+  while (cursor < markdown.length) {
+    const tagStart = markdown.indexOf("<", cursor)
+    if (tagStart === -1) return markdown.length
+    const tag = htmlTagAt(markdown, tagStart)
+    const parsed = tag && parseHtmlTag(tag)
+    if (!parsed) {
+      cursor = tagStart + 1
+      continue
+    }
+    cursor = tagStart + tag.length
+    if (parsed.name !== containerName) continue
+    if (parsed.closing) {
+      depth -= 1
+      if (depth === 0) return cursor
+    } else if (!parsed.selfClosing) {
+      depth += 1
+    }
+  }
+  return markdown.length
+}
+
 function sanitizeRawHtml(markdown, currentRelativePath, publishedIndex) {
   let output = ""
   let cursor = 0
@@ -242,6 +322,15 @@ function sanitizeRawHtml(markdown, currentRelativePath, publishedIndex) {
       continue
     }
     cursor += tag.length
+    if (discardedHtmlContainers.has(parsed.name)) {
+      if (!parsed.closing && !parsed.selfClosing) {
+        cursor = afterDiscardedContainer(markdown, cursor, parsed.name)
+      }
+      continue
+    }
+    if (discardedHtmlElements.has(parsed.name)) {
+      continue
+    }
     if (parsed.name === "a" && parsed.closing) {
       if (privateAnchorDepth > 0) {
         privateAnchorDepth -= 1
@@ -252,7 +341,16 @@ function sanitizeRawHtml(markdown, currentRelativePath, publishedIndex) {
       continue
     }
 
-    const unsafeAttributes = new Set()
+    const unsafeAttributes = new Set(
+      [...parsed.attributes]
+        .filter(
+          ([attribute, value]) =>
+            discardedHtmlAttributes.has(attribute) ||
+            attribute.startsWith("on") ||
+            hasJavascriptUrl(attribute, value),
+        )
+        .map(([attribute]) => attribute),
+    )
     for (const attribute of ["href", "src", "srcset"]) {
       const target = parsed.attributes.get(attribute)
       if (!target) continue
@@ -284,7 +382,9 @@ function sanitizeRawHtml(markdown, currentRelativePath, publishedIndex) {
     }
     const attributes = [...parsed.attributes]
       .filter(([attribute]) => !unsafeAttributes.has(attribute))
-      .map(([attribute, value]) => (value ? ` ${attribute}="${value}"` : ` ${attribute}`))
+      .map(([attribute, value]) =>
+        value ? ` ${attribute}="${escapeAttributeValue(value)}"` : ` ${attribute}`,
+      )
       .join("")
     output += `<${parsed.name}${attributes}${parsed.selfClosing ? "/>" : ">"}`
   }
@@ -364,8 +464,35 @@ function sanitizeMarkdown(markdown, currentRelativePath, publishedIndex) {
   )
 }
 
+export function portalPage() {
+  return [
+    "---",
+    'title: "探索"',
+    'description: "进入知识花园或名字打架"',
+    "---",
+    "",
+    "选一个入口，开始探索。",
+    "",
+    '<div class="portal-grid" role="list">',
+    '  <a class="portal-card portal-card--garden" href="/garden" aria-label="进入知识花园" role="listitem">',
+    '    <span class="portal-card__eyebrow">公开笔记</span>',
+    '    <strong class="portal-card__title">知识花园</strong>',
+    '    <span class="portal-card__description">阅读关于人工智能、工程实践与生活方法的笔记。</span>',
+    '    <span class="portal-card__action" aria-hidden="true">进入花园 <span>→</span></span>',
+    "  </a>",
+    '  <a class="portal-card portal-card--fight" href="/name-fight/" aria-label="进入名字打架游戏" role="listitem">',
+    '    <span class="portal-card__eyebrow">互动游戏</span>',
+    '    <strong class="portal-card__title">名字打架</strong>',
+    '    <span class="portal-card__description">输入两个名字，看看谁会胜出。</span>',
+    '    <span class="portal-card__action" aria-hidden="true">开始对决 <span>→</span></span>',
+    "  </a>",
+    "</div>",
+    "",
+  ].join("\n")
+}
+
 // Receives only the publisher's already-selected notes. Never reads the source vault.
-export function landingPage(notes) {
+export function gardenPage(notes) {
   const groups = new Map()
   const labels = { "notes/tech": "人工智能与工程", "notes/common": "生活与方法" }
   // Use public file names, not arbitrary frontmatter or excerpts from source Markdown.
@@ -387,7 +514,7 @@ export function landingPage(notes) {
     "",
     ...files.map(
       (file) =>
-        `- [${label(path.posix.basename(file).replace(markdownExtension, ""))}](knowledge/${file.split("/").map(encodeURIComponent).join("/")})`,
+        `- [${label(path.posix.basename(file).replace(markdownExtension, ""))}](/knowledge/${file.split("/").map(encodeURIComponent).join("/")})`,
     ),
     "",
   ])
@@ -405,12 +532,15 @@ export function landingPage(notes) {
     "",
     ...[...groups].map(
       ([folder, files]) =>
-        `- [${labels[folder] ?? label(path.posix.basename(folder))} · ${files.length} 篇](knowledge/${folder === "." ? "" : folder.split("/").map(encodeURIComponent).join("/") + "/"})`,
+        `- [${labels[folder] ?? label(path.posix.basename(folder))} · ${files.length} 篇](/knowledge/${folder === "." ? "" : folder.split("/").map(encodeURIComponent).join("/") + "/"})`,
     ),
     "",
     ...sections,
   ].join("\n")
 }
+
+// Kept for callers that imported the old helper name.
+export const landingPage = gardenPage
 
 export async function syncKnowledge({
   sourceDir,
@@ -433,6 +563,7 @@ export async function syncKnowledge({
   const generatedRoot = path.join(destination, "knowledge")
   await rm(generatedRoot, { recursive: true, force: true })
   await rm(path.join(destination, "index.md"), { force: true })
+  await rm(path.join(destination, "garden.md"), { force: true })
   await mkdir(generatedRoot, { recursive: true })
 
   const index = buildPublishedIndex(published, path.basename(source))
@@ -441,7 +572,8 @@ export async function syncKnowledge({
     await mkdir(path.dirname(output), { recursive: true })
     await writeFile(output, sanitizeMarkdown(note.markdown, note.relativePath, index), "utf8")
   }
-  await writeFile(path.join(destination, "index.md"), landingPage(published), "utf8")
+  await writeFile(path.join(destination, "index.md"), portalPage(), "utf8")
+  await writeFile(path.join(destination, "garden.md"), gardenPage(published), "utf8")
 
   return { publishedCount: published.length }
 }
