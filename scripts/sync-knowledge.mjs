@@ -364,29 +364,51 @@ function sanitizeMarkdown(markdown, currentRelativePath, publishedIndex) {
   )
 }
 
-function landingPage(notes) {
-  const areas = [...new Set(notes.map((note) => slash(note.relativePath).split("/")[0]))].sort(
-    (a, b) => a.localeCompare(b, "zh-CN"),
-  )
-  const areaNames = { notes: "知识笔记" }
-  const links =
-    areas.length > 0
-      ? areas.map((area) => `- [[knowledge/${area}|${areaNames[area] ?? area}]]`).join("\n")
-      : "目前没有公开内容。"
+// Receives only the publisher's already-selected notes. Never reads the source vault.
+export function landingPage(notes) {
+  const groups = new Map()
+  const labels = { "notes/tech": "人工智能与工程", "notes/common": "生活与方法" }
+  // Use public file names, not arbitrary frontmatter or excerpts from source Markdown.
+  const label = (value) =>
+    value
+      .replace(/[\[\]<>|#\r\n]/g, " ")
+      .replaceAll("_", " ")
+      .trim()
+  for (const note of [...notes].sort((a, b) =>
+    a.relativePath.localeCompare(b.relativePath, "zh-CN"),
+  )) {
+    const relative = slash(note.relativePath)
+    const folder = path.posix.dirname(relative)
+    if (!groups.has(folder)) groups.set(folder, [])
+    groups.get(folder).push(relative)
+  }
+  const sections = [...groups].flatMap(([folder, files]) => [
+    `## ${labels[folder] ?? label(path.posix.basename(folder))}`,
+    "",
+    ...files.map(
+      (file) =>
+        `- [${label(path.posix.basename(file).replace(markdownExtension, ""))}](knowledge/${file.split("/").map(encodeURIComponent).join("/")})`,
+    ),
+    "",
+  ])
   return [
     "---",
     'title: "知识花园"',
     'description: "关于 AI、技术与生活的公开笔记"',
     "---",
     "",
-    "这里是一座持续生长的知识花园，收录我整理并公开的学习笔记，涵盖人工智能、推荐系统、工程实践与生活方式。",
+    "记录学习，连接想法。这里收录关于人工智能、工程实践与生活方法的公开笔记。",
     "",
-    "左侧目录可以浏览全部内容，右上角搜索能快速定位任意一篇。",
+    notes.length
+      ? `共 ${notes.length} 篇公开笔记。按主题阅读，或用搜索寻找关键词。`
+      : "目前没有公开内容。",
     "",
-    "## 公开领域",
+    ...[...groups].map(
+      ([folder, files]) =>
+        `- [${labels[folder] ?? label(path.posix.basename(folder))} · ${files.length} 篇](knowledge/${folder === "." ? "" : folder.split("/").map(encodeURIComponent).join("/") + "/"})`,
+    ),
     "",
-    links,
-    "",
+    ...sections,
   ].join("\n")
 }
 

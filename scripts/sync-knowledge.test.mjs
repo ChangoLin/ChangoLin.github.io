@@ -273,3 +273,28 @@ test("supports CLI and environment source-path overrides with CLI taking precede
   )
   assert.equal(resolveSourcePath([], {}, fallback), path.resolve(fallback))
 })
+
+test("landing page lists only selected public notes with working category and article targets", async (t) => {
+  const { sourceDir, contentDir } = await fixture(t)
+  await put(sourceDir, "notes/tech/公开 文章.md", "---\npublish: true\n---\n公开内容")
+  await put(sourceDir, "notes/common/方法.md", "---\npublish: true\n---\n公开内容")
+  await put(sourceDir, "notes/tech/hidden.md", "---\npublish: false\n---\n秘密")
+  await syncKnowledge({ sourceDir, contentDir })
+  const home = await readFile(path.join(contentDir, "index.md"), "utf8")
+  assert.match(home, /共 2 篇公开笔记/)
+  assert.match(home, /人工智能与工程 · 1 篇/)
+  assert.match(home, /生活与方法 · 1 篇/)
+  assert.doesNotMatch(home, /hidden|秘密/)
+  for (const [, href] of home.matchAll(/\]\(([^)]+)\)/g)) {
+    const target = path.join(contentDir, decodeURIComponent(href))
+    if (href.endsWith("/")) assert.ok((await readdir(target)).length)
+    else assert.ok(await readFile(target, "utf8"))
+  }
+})
+
+test("empty landing page has no dead category links", async () => {
+  const { landingPage } = await import("./sync-knowledge.mjs")
+  const home = landingPage([])
+  assert.match(home, /目前没有公开内容/)
+  assert.doesNotMatch(home, /\]\(/)
+})

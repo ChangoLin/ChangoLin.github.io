@@ -23,12 +23,15 @@ export const DefaultFrame: PageFrame = {
   }: PageFrameProps) {
     return (
       <>
-        <div class="left sidebar">
+        <a class="skip-link" href="#main-content">
+          跳到正文
+        </a>
+        <div class="left sidebar" role="navigation" aria-label="知识导航">
           {left.map((BodyComponent) => (
             <BodyComponent {...componentData} />
           ))}
         </div>
-        <div class="center">
+        <main class="center" id="main-content" tabIndex={-1}>
           <div class="page-header">
             <Header {...componentData}>
               {header.map((HeaderComponent) => (
@@ -42,13 +45,12 @@ export const DefaultFrame: PageFrame = {
             </div>
           </div>
           <Content {...componentData} />
-          <hr />
           <div class="page-footer">
             {afterBody.map((BodyComponent) => (
               <BodyComponent {...componentData} />
             ))}
           </div>
-        </div>
+        </main>
         <div class="right sidebar">
           {right.map((BodyComponent) => (
             <BodyComponent {...componentData} />

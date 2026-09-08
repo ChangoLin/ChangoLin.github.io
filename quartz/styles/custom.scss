@@ -1,412 +1,448 @@
-@use "./variables.scss" as *;
-
-// A quiet, paper-like surface with reusable proportions for the sidebar furniture.
+// Site layout and plugin adapters. Keep the 800px breakpoint aligned with Quartz plugins.
 :root {
-  --wiki-panel-radius: 0.625rem;
-  --wiki-panel-background: color-mix(in srgb, var(--light) 88%, var(--lightgray));
-  --wiki-panel-shadow: 0 0.3rem 1rem color-mix(in srgb, var(--dark) 7%, transparent);
-  --wiki-panel-shadow-hover: 0 0.55rem 1.4rem color-mix(in srgb, var(--dark) 11%, transparent);
+  --garden-surface: color-mix(in srgb, var(--light) 92%, var(--secondary));
 }
 
-// Sidebar cards -------------------------------------------------------------
-.explorer,
-.graph,
-.backlinks,
-.toc {
+html {
+  width: 100%;
+  overflow-x: clip;
+  scroll-padding-top: 5rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 4px;
+}
+
+.skip-link {
+  position: fixed;
+  top: -5rem;
+  left: 1rem;
+  z-index: 1100;
+  padding: 0.75rem 1rem;
+  background: var(--light);
+  &:focus {
+    top: 1rem;
+  }
+}
+
+.page {
+  max-width: 1160px;
+  padding-inline: 2rem;
   box-sizing: border-box;
-  border: 1px solid var(--lightgray);
-  border-radius: var(--wiki-panel-radius);
-  background-color: var(--wiki-panel-background);
-  box-shadow: var(--wiki-panel-shadow);
-  padding: 0.9rem 1rem;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--secondary) 32%, var(--lightgray));
-    box-shadow: var(--wiki-panel-shadow-hover);
-    transform: translateY(-2px);
-  }
 }
 
-.graph > h3,
-.backlinks > h3,
-button.toc-header h3,
-button.desktop-explorer h2 {
-  color: var(--dark);
-  letter-spacing: 0.02em;
-}
+.page > #quartz-body {
+  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  grid-template-areas: "grid-sidebar-left grid-center" "grid-sidebar-left grid-footer";
+  gap: 0 3.5rem;
+  padding: 0;
 
-.graph > .graph-outer {
-  margin-bottom: 0;
-  border-radius: calc(var(--wiki-panel-radius) - 0.15rem);
-  background-color: var(--light);
-}
-
-.backlinks > ul.overflow > li,
-ul.toc-content.overflow > li {
-  margin: 0.18rem 0;
-}
-
-.backlinks > ul.overflow > li > a,
-ul.toc-content.overflow > li > a {
-  display: block;
-  border-radius: calc(var(--wiki-panel-radius) - 0.25rem);
-  padding-block: 0.18rem;
-
-  &:hover {
-    background-color: var(--highlight);
-  }
-}
-
-ul.toc-content.overflow > li > a.in-view {
-  color: var(--secondary);
-  opacity: 1;
-}
-
-@media all and ($desktop) {
-  .page > #quartz-body .sidebar {
-    padding-top: 2rem;
-  }
-}
-
-// Explorer ------------------------------------------------------------------
-.explorer-content {
-  margin-top: 0.7rem;
-
-  .folder-outer > ul {
-    border-left-color: color-mix(in srgb, var(--secondary) 24%, var(--lightgray));
-  }
-
-  ul li > a,
-  .folder-container {
-    border-radius: calc(var(--wiki-panel-radius) - 0.25rem);
-    transition:
-      color 0.18s ease,
-      background-color 0.18s ease,
-      opacity 0.18s ease,
-      border-color 0.18s ease;
-  }
-
-  ul li > a {
-    display: block;
-    border-left: 3px solid transparent;
-    background-color: transparent;
-    padding: 0.2rem 0.45rem;
-    line-height: 1.45;
-
-    &:hover {
-      color: var(--secondary);
-      background-color: var(--highlight);
-      opacity: 1;
-    }
-
-    &.active {
-      border-left-color: var(--secondary);
-      background-color: var(--highlight);
-      color: var(--dark);
-      opacity: 1;
-    }
-  }
-
-  .folder-container {
-    padding: 0.12rem 0.35rem;
-
-    &:hover {
-      background-color: var(--highlight);
-    }
-  }
-}
-
-// Homepage hero -------------------------------------------------------------
-body[data-slug="index"] {
-  .article-title,
-  article > h1:first-child {
-    margin-top: 2.5rem;
-    margin-bottom: 1.15rem;
-    color: var(--dark);
-    font-family: var(--headerFont);
-    font-size: clamp(2.25rem, 4.8vw, 3.15rem);
-    line-height: 1.2;
-    letter-spacing: 0.045em;
-    text-wrap: balance;
-  }
-
-  .content-meta {
-    margin-bottom: 1.5rem;
-    color: var(--gray);
-  }
-
-  article > p:first-of-type {
+  > .center {
+    grid-area: grid-center;
+    min-width: 0;
+    width: 100%;
     max-width: 46rem;
-    margin: 0 0 2rem;
-    color: var(--gray);
-    font-size: clamp(1.08rem, 1.8vw, 1.22rem);
-    line-height: 1.85;
-    letter-spacing: 0.012em;
-    text-wrap: pretty;
-  }
-}
-
-// Reading rhythm ------------------------------------------------------------
-article {
-  line-height: 1.78;
-
-  > h1,
-  > h2,
-  > h3,
-  > h4,
-  > h5,
-  > h6 {
-    line-height: 1.35;
-    text-wrap: balance;
   }
 
-  > h2 {
-    margin-top: 2.35rem;
+  .sidebar.left {
+    padding: 2.5rem 0 1.5rem;
+    gap: 1.25rem;
+    height: 100dvh;
+    min-width: 0;
   }
 
-  > h3 {
-    margin-top: 1.9rem;
+  .sidebar.right:empty {
+    display: none;
   }
-}
-
-blockquote {
-  margin: 1.5rem 0;
-  border-left-color: var(--secondary);
-  border-radius: 0 var(--wiki-panel-radius) var(--wiki-panel-radius) 0;
-  background-color: var(--wiki-panel-background);
-  padding: 0.8rem 1.15rem;
-  color: var(--darkgray);
-
-  > :first-child {
-    margin-top: 0;
+  .page-header {
+    margin: 2.5rem 0 1.5rem;
+  }
+  .page-footer {
+    margin-top: 2rem;
   }
 
-  > :last-child {
-    margin-bottom: 0;
-  }
-}
-
-hr {
-  margin-block: 2.5rem;
-  background-color: var(--lightgray);
-}
-
-pre,
-figure[data-rehype-pretty-code-figure] > [data-rehype-pretty-code-title] {
-  border-radius: var(--wiki-panel-radius);
-}
-
-pre {
-  border-color: var(--lightgray);
-  background-color: var(--wiki-panel-background);
-  box-shadow: 0 0.15rem 0.55rem color-mix(in srgb, var(--dark) 5%, transparent);
-}
-
-article :not(pre) > code {
-  border: 1px solid var(--lightgray);
-  border-radius: 0.3rem;
-  background-color: var(--wiki-panel-background);
-  padding: 0.12em 0.32em;
-}
-
-// Links ---------------------------------------------------------------------
-a {
-  text-decoration-color: color-mix(in srgb, var(--tertiary) 70%, transparent);
-  text-underline-offset: 0.18em;
-  transition:
-    color 0.18s ease,
-    background-color 0.18s ease,
-    text-decoration-color 0.18s ease;
-
-  &:hover {
-    text-decoration: underline;
-    text-decoration-thickness: 0.08em;
-  }
-
-  &.internal {
-    box-decoration-break: clone;
-    transition:
-      color 0.18s ease,
-      background-color 0.18s ease,
-      text-decoration-color 0.18s ease;
-
-    &:hover {
-      background-color: color-mix(in srgb, var(--highlight) 82%, var(--secondary));
+  .page-title {
+    font-size: 1.55rem;
+    margin: 0;
+    a {
+      color: var(--secondary);
     }
   }
 
-  &.external .external-icon {
-    margin-inline: 0.18em;
-    opacity: 0.72;
-    transition:
-      opacity 0.18s ease,
-      transform 0.18s ease;
-
-    > path {
-      fill: currentColor;
+  .flex-component {
+    min-width: 0;
+  }
+  .search {
+    min-width: 0;
+    max-width: none;
+  }
+  .search-button,
+  .darkmode,
+  .mobile-explorer {
+    box-sizing: border-box;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 6px;
+  }
+  .darkmode {
+    flex: 0 0 44px;
+    padding: 10px;
+  }
+  .search-button {
+    background: var(--garden-surface);
+    p {
+      color: var(--darkgray);
     }
-  }
-
-  &.external:hover .external-icon {
-    opacity: 1;
-    transform: translate(0.06em, -0.06em);
-  }
-}
-
-// Search --------------------------------------------------------------------
-.search > .search-button {
-  min-height: 2.35rem;
-  border-color: var(--lightgray);
-  border-radius: var(--wiki-panel-radius);
-  background-color: var(--wiki-panel-background);
-  padding-right: 0.9rem;
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    box-shadow 0.18s ease;
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--secondary) 42%, var(--lightgray));
-    background-color: var(--highlight);
-  }
-
-  &:focus-visible {
-    outline: none;
-    border-color: var(--secondary);
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--secondary) 22%, transparent);
-  }
-}
-
-.search > .search-container > .search-space {
-  > input {
-    border-radius: var(--wiki-panel-radius);
-    padding: 0.72em 1em;
-    transition:
-      border-color 0.18s ease,
-      box-shadow 0.18s ease;
-
-    &:focus {
-      border-color: var(--secondary);
-      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--secondary) 22%, transparent);
-    }
-  }
-
-  > .search-layout {
-    border-radius: var(--wiki-panel-radius);
-  }
-}
-
-// Footer --------------------------------------------------------------------
-footer {
-  box-sizing: border-box;
-  margin-top: 2.5rem;
-  margin-bottom: 2.5rem;
-  border-top: 1px solid var(--lightgray);
-  padding: 1.4rem 1rem 0;
-  color: var(--gray);
-  text-align: center;
-  opacity: 1;
-
-  p,
-  ul,
-  li {
-    color: var(--gray);
-  }
-
-  ul {
-    justify-content: center;
-    margin-top: 0.35rem;
-    gap: 1.1rem;
-  }
-
-  a {
-    color: var(--gray);
-
-    &:hover {
-      color: var(--tertiary);
-    }
-  }
-}
-
-// Scrollbars ----------------------------------------------------------------
-* {
-  scrollbar-color: var(--gray) transparent;
-  scrollbar-width: thin;
-}
-
-*::-webkit-scrollbar {
-  width: 0.45rem;
-  height: 0.45rem;
-}
-
-*::-webkit-scrollbar-track {
-  background-color: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  border: 1px solid var(--light);
-  border-radius: var(--wiki-panel-radius);
-  background-color: var(--gray);
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background-color: var(--tertiary);
-}
-
-// Preserve the compact mobile explorer while giving content cards room to breathe.
-@media all and ($mobile) {
-  :root {
-    --wiki-panel-radius: 0.55rem;
   }
 
   .explorer {
-    border: 0;
-    border-radius: 0;
-    background-color: transparent;
-    box-shadow: none;
-    padding: 0;
-
+    min-height: 44px;
+  }
+  .explorer.collapsed > .explorer-content {
+    display: none;
+  }
+  .desktop-explorer {
+    min-height: 44px;
+  }
+  .explorer-content {
+    margin-top: 0.25rem;
+  }
+  .explorer-content ul li > a {
+    display: block;
+    padding: 0.5rem 0.35rem;
+    line-height: 1.5;
+    font-size: 0.875rem;
+    font-weight: 400;
+    opacity: 1;
+    border-radius: 4px;
+    overflow-wrap: anywhere;
+    &.active {
+      color: var(--secondary);
+      background: var(--highlight);
+    }
     &:hover {
-      box-shadow: none;
-      transform: none;
+      background: var(--garden-surface);
     }
   }
+  .folder-container {
+    min-height: 44px;
+    > div {
+      min-width: 0;
+    }
+    .folder-button {
+      padding-block: 0.65rem;
+    }
+  }
+  .folder-icon {
+    width: 20px;
+    height: 44px;
+    padding-inline: 6px;
+    margin: 0;
+  }
 
-  .graph,
-  .backlinks,
+  .article-title {
+    font-size: clamp(1.7rem, 3vw, 2.25rem);
+    line-height: 1.4;
+    margin: 0.8rem 0;
+    overflow-wrap: anywhere;
+  }
+  .content-meta {
+    color: var(--darkgray);
+    font-size: 0.875rem;
+  }
+  .breadcrumb-container {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+  }
+  .breadcrumb-element {
+    min-width: 0;
+  }
+  .breadcrumb-element a {
+    overflow-wrap: anywhere;
+  }
+
   .toc {
-    padding: 0.75rem;
+    border-block: 1px solid var(--lightgray);
+    padding: 0.25rem 0;
+    margin-top: 1.25rem;
   }
-
-  body[data-slug="index"] {
-    .article-title,
-    article > h1:first-child {
-      margin-top: 1.75rem;
-      font-size: clamp(2.1rem, 11vw, 2.6rem);
-      letter-spacing: 0.025em;
-    }
-
-    article > p:first-of-type {
-      margin-bottom: 1.6rem;
-      font-size: 1.05rem;
-    }
+  .toc-header {
+    min-height: 44px;
+    width: 100%;
+    justify-content: space-between;
   }
-
-  blockquote {
-    padding: 0.7rem 0.9rem;
+  .toc-content {
+    max-height: 40vh;
+    overflow-y: auto;
+    &.collapsed {
+      display: none;
+    }
+    > li > a {
+      display: block;
+      padding: 0.65rem 0;
+      opacity: 1;
+      line-height: 1.5;
+    }
   }
 
   footer {
-    margin-top: 2rem;
-    padding-inline: 0.5rem;
-
-    ul {
-      flex-wrap: wrap;
-      gap: 0.65rem 1rem;
+    min-width: 0;
+    margin: 2rem 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--lightgray);
+    opacity: 1;
+    font-size: 0.8rem;
+    a {
+      display: inline-block;
+      padding-block: 0.6rem;
     }
+  }
+}
+
+article {
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+  h2 {
+    margin-top: 2.25rem;
+    font-size: 1.4rem;
+  }
+  h3 {
+    margin-top: 1.75rem;
+    font-size: 1.15rem;
+  }
+  :is(h1, h2, h3, h4) {
+    line-height: 1.5;
+    scroll-margin-top: 5rem;
+  }
+  a.internal {
+    background: transparent;
+    text-decoration: underline;
+    text-decoration-color: var(--lightgray);
+    text-underline-offset: 0.2em;
+  }
+  :is(img, video, svg) {
+    max-width: 100%;
+  }
+  :is(pre, .table-container, .katex-display) {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  pre {
+    background: var(--garden-surface);
+    border-radius: 6px;
+  }
+  blockquote {
+    margin: 1.5rem 0;
+    padding: 0.25rem 1rem;
+    border-left: 3px solid var(--secondary);
+  }
+}
+
+body[data-slug="index"] .page {
+  article > .markdown-preview-view > p {
+    margin: 0 0 1rem;
+  }
+  article > .markdown-preview-view > ul {
+    padding: 0;
+    list-style: none;
+  }
+  article > .markdown-preview-view > ul > li {
+    margin: 0;
+    border-bottom: 1px solid var(--lightgray);
+  }
+  article > .markdown-preview-view > ul > li > a {
+    display: block;
+    padding: 0.8rem 0;
+    line-height: 1.65;
+    text-decoration: none;
+  }
+  article > .markdown-preview-view > ul:first-of-type {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block: 1.25rem 2rem;
+    > li {
+      border: 1px solid var(--lightgray);
+      border-radius: 6px;
+      background: var(--garden-surface);
+    }
+    > li > a {
+      padding: 0.65rem 1rem;
+    }
+  }
+}
+
+// Search stays in the viewport, including when the on-screen keyboard is open.
+.page .search > .search-container {
+  height: 100dvh;
+  background: color-mix(in srgb, var(--light) 80%, transparent);
+  > .search-space {
+    width: min(90%, 900px);
+    margin-top: 5vh;
+    > .search-close {
+      display: block;
+      width: auto;
+      min-height: 44px;
+      margin: 0 0 0.5rem auto;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--lightgray);
+      background: var(--light);
+      color: var(--dark);
+      box-shadow: none;
+      cursor: pointer;
+    }
+    > .search-layout {
+      margin-bottom: 1rem;
+    }
+    > .search-layout > div {
+      height: min(65dvh, 650px);
+      min-width: 0;
+    }
+    .result-card > p.card-description {
+      color: var(--darkgray);
+    }
+    .result-card {
+      min-height: 44px;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+@media (max-width: 1000px) and (min-width: 801px) {
+  .page {
+    padding-inline: 1.5rem;
+  }
+  .page > #quartz-body {
+    grid-template-columns: 200px minmax(0, 1fr);
+    column-gap: 2rem;
+  }
+}
+
+@media (max-width: 800px) {
+  .page {
+    padding-inline: 1rem;
+  }
+  .page > #quartz-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas: "grid-sidebar-left" "grid-center" "grid-footer";
+    gap: 0;
+
+    .sidebar.left:has(.explorer) {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      height: 64px;
+      z-index: 100;
+      border-bottom: 1px solid var(--lightgray);
+    }
+    .page-title {
+      font-size: 1.25rem;
+      white-space: nowrap;
+      margin-right: auto;
+    }
+    .sidebar.left > .flex-component {
+      flex: 0 0 auto;
+      gap: 0.25rem !important;
+    }
+    .search-button {
+      width: 44px;
+      padding: 0;
+      justify-content: center;
+      p {
+        display: none;
+      }
+    }
+    .explorer {
+      order: 3;
+      flex: 0 0 44px;
+      align-self: center;
+    }
+    .explorer .mobile-explorer {
+      padding: 10px;
+      &[aria-expanded="true"] {
+        svg {
+          display: none;
+        }
+        &::after {
+          content: "关闭";
+          font-size: 12px;
+          white-space: nowrap;
+        }
+      }
+    }
+    .explorer .explorer-content {
+      position: fixed;
+      inset: 64px 0 0;
+      width: 100%;
+      height: calc(100dvh - 64px);
+      max-height: none;
+      padding: 1rem;
+      overflow-y: auto;
+      transform: none;
+      transition: none;
+      border-top: 1px solid var(--lightgray);
+      > .explorer-ul {
+        overflow: visible;
+        max-height: none;
+      }
+    }
+    .explorer.collapsed > .explorer-content {
+      display: none;
+    }
+    .explorer-content ul li > a {
+      font-size: 1rem;
+      min-height: 44px;
+      box-sizing: border-box;
+    }
+    .folder-icon {
+      width: 24px;
+      padding-inline: 10px;
+    }
+    .page-header {
+      margin: 1.5rem 0 1rem;
+    }
+    .article-title {
+      font-size: 1.65rem;
+    }
+    .breadcrumb-container {
+      font-size: 0.8rem;
+    }
+    footer {
+      margin-block: 1.5rem;
+    }
+  }
+  html.mobile-no-scroll {
+    overflow: hidden;
+  }
+  .page .search > .search-container > .search-space {
+    width: calc(100% - 2rem);
+    margin-top: 0.5rem;
+    > input {
+      margin-bottom: 1rem;
+    }
+    .result-card > p.card-description {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }
