@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "family": "Whimsy Hallow Asset Pack - Medieval Characters",
+  "author": "Crumpaloo",
+  "source": "https://crumpaloo.itch.io/whimsy-hallow-asset-pack-medieval-characters",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "sourceArchiveSha256": "1c5fe12a7bbf6f39ecf840750d81d9aaebdb2958ef588c8754f41ab9731a9d1c",
+  "sourcePngSha256": "34bc05003b1e398fce7c9aad5e0e094b60991e7bae5f9683a3d6f23fc6d09c6e",
+  "atlas": { "width": 192, "height": 160, "cellWidth": 32, "cellHeight": 32, "columns": 6, "rows": 5 },
+  "states": {
+    "idle": { "row": 0, "frames": 1, "loop": true },
+    "run": { "row": 1, "frames": 6, "loop": true },
+    "attack": { "row": 2, "frames": 6, "loop": true },
+    "hurt": { "row": 3, "frames": 6, "loop": false },
+    "death": { "row": 4, "frames": 6, "loop": false, "terminalFrame": 5 }
+  },
+  "classes": {
+    "warrior": { "label": "武者", "spriteId": "horned-fighter-a", "sourceBuild": "sheet-cell-12", "file": "horned-fighter-a.webp" },
+    "wanderer": { "label": "侠客", "spriteId": "blue-blade-a", "sourceBuild": "sheet-cell-17", "file": "blue-blade-a.webp" },
+    "bruiser": { "label": "壮士", "spriteId": "bare-fighter-a", "sourceBuild": "sheet-cell-7", "file": "bare-fighter-a.webp" },
+    "sorcerer": { "label": "术士", "spriteId": "blue-blade-b", "sourceBuild": "sheet-cell-18", "file": "blue-blade-b.webp" },
+    "archer": { "label": "弓手", "spriteId": "forest-archer-a", "sourceBuild": "sheet-cell-15", "file": "forest-archer-a.webp" },
+    "taoist": { "label": "道者", "spriteId": "white-robed-a", "sourceBuild": "sheet-cell-5", "file": "white-robed-a.webp" },
+    "sword-saint": { "label": "剑圣", "spriteId": "red-blade-b", "sourceBuild": "sheet-cell-23", "file": "red-blade-b.webp" },
+    "iron-guard": { "label": "铁卫", "spriteId": "gold-guard-a", "sourceBuild": "sheet-cell-10", "file": "gold-guard-a.webp" },
+    "shadow-assassin": { "label": "影刺", "spriteId": "shadow-hood-a", "sourceBuild": "sheet-cell-20", "file": "shadow-hood-a.webp" },
+    "holy-monk": { "label": "圣僧", "spriteId": "white-robed-b", "sourceBuild": "sheet-cell-6", "file": "white-robed-b.webp" },
+    "celestial": { "label": "天人", "spriteId": "gold-guard-b", "sourceBuild": "sheet-cell-11", "file": "gold-guard-b.webp" },
+    "demon-lord": { "label": "魔尊", "spriteId": "red-blade-a", "sourceBuild": "sheet-cell-22", "file": "red-blade-a.webp" }
+  }
+}

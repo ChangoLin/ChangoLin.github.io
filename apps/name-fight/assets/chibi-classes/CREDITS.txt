@@ -1,0 +1,20 @@
+Whimsy Hallow Asset Pack - Medieval Characters
+Artist: Crumpaloo
+Source: https://crumpaloo.itch.io/whimsy-hallow-asset-pack-medieval-characters
+License: Creative Commons Zero v1.0 Universal (CC0-1.0)
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+
+The source page states that the pack contains ten 16x16 medieval character
+classes with male/female variants, attacking, walking, running, jumping,
+landing, injured, and death animations. It identifies the asset license as
+CC0 and states that no generative AI was used.
+
+This distribution contains twelve 192x160 WebP atlases derived from the source
+PNG. Each atlas contains only the idle pose plus the run, attack, injured, and
+death frames used by the Name Fight opt-in chibi demo. Horizontal mirroring is
+performed at runtime so opponents face one another.
+
+Source archive SHA-256:
+1c5fe12a7bbf6f39ecf840750d81d9aaebdb2958ef588c8754f41ab9731a9d1c
+Source PNG SHA-256:
+34bc05003b1e398fce7c9aad5e0e094b60991e7bae5f9683a3d6f23fc6d09c6e
