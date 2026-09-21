@@ -11,7 +11,7 @@ CC0 and states that no generative AI was used.
 
 This distribution contains twelve 192x160 WebP atlases derived from the source
 PNG. Each atlas contains only the idle pose plus the run, attack, injured, and
-death frames used by the Name Fight opt-in chibi demo. Horizontal mirroring is
+death frames used by the default Name Fight chibi experience. Horizontal mirroring is
 performed at runtime so opponents face one another.
 
 Source archive SHA-256:
