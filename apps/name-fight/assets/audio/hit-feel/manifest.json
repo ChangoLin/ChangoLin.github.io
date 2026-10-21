@@ -1,0 +1,74 @@
+{
+  "author": "Kenney",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "webRedistribution": "CC0 permits copying, modification and redistribution, including commercial use.",
+  "sources": {
+    "rpg-audio": {
+      "page": "https://kenney.nl/assets/rpg-audio",
+      "download": "https://kenney.nl/media/pages/assets/rpg-audio/8e99002d76-1677590336/kenney_rpg-audio.zip",
+      "archiveSha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b"
+    },
+    "impact-sounds": {
+      "page": "https://kenney.nl/assets/impact-sounds",
+      "download": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+      "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8"
+    }
+  },
+  "samples": [
+    {
+      "file": "release.wav",
+      "sourcePack": "rpg-audio",
+      "sourceFile": "Audio/knifeSlice.ogg",
+      "sourceSha256": "4cd96dc630bed9840c15f1dd2306da2cc56a4da26a5d3f1a03c5a7265ac5e54f",
+      "sha256": "18718778241bdb88c17145c2b4a21186f2cb9bf2e61dadd024dc8ef8b1463784",
+      "bytes": 8898,
+      "processing": "silenceremove=start_periods=1:start_duration=0.001:start_threshold=-50dB,atrim=duration=0.2,asetpts=PTS-STARTPTS,afade=t=out:st=0.17:d=0.03; mono PCM16 22050 Hz; no synthesized audio"
+    },
+    {
+      "file": "cut.wav",
+      "sourcePack": "rpg-audio",
+      "sourceFile": "Audio/chop.ogg",
+      "sourceSha256": "d00c2b3c9fff07e376145c8c8c45c90e5084ec192f6ce0387db233f7b86f1486",
+      "sha256": "73bf2cf0633fcd849728333d5eef0fb9fe8384b80477df9ab5b644c0c03df2d3",
+      "bytes": 8898,
+      "processing": "silenceremove=start_periods=1:start_duration=0.001:start_threshold=-50dB,atrim=duration=0.2,asetpts=PTS-STARTPTS,afade=t=out:st=0.17:d=0.03; mono PCM16 22050 Hz; no synthesized audio"
+    },
+    {
+      "file": "blunt.wav",
+      "sourcePack": "impact-sounds",
+      "sourceFile": "Audio/impactPunch_medium_000.ogg",
+      "sourceSha256": "486988aa2d6440ffc4c62a0e8ccf3c23673ba84424bd4723378d451b7255eb5c",
+      "sha256": "7cc3812646868deb0e30be674b5ad674abf8a9b1b45ad3e0ee609ffc18a8b9c3",
+      "bytes": 9780,
+      "processing": "silenceremove=start_periods=1:start_duration=0.001:start_threshold=-50dB,atrim=duration=0.22,asetpts=PTS-STARTPTS,afade=t=out:st=0.19:d=0.03; mono PCM16 22050 Hz; no synthesized audio"
+    },
+    {
+      "file": "spell.wav",
+      "sourcePack": "impact-sounds",
+      "sourceFile": "Audio/impactGlass_light_000.ogg",
+      "sourceSha256": "d750cf88097d0c3e69920e6e14496e1444e1a9da01aa4cca8f5ec8cb44c57b4f",
+      "sha256": "cd17e8b15b1e249f2e23f552a3bf32305caf09f0b408b32fd9123fc2daf13da4",
+      "bytes": 9340,
+      "processing": "silenceremove=start_periods=1:start_duration=0.001:start_threshold=-50dB,atrim=duration=0.21,asetpts=PTS-STARTPTS,afade=t=out:st=0.18:d=0.03; mono PCM16 22050 Hz; no synthesized audio"
+    },
+    {
+      "file": "shield.wav",
+      "sourcePack": "impact-sounds",
+      "sourceFile": "Audio/impactMetal_light_000.ogg",
+      "sourceSha256": "33b5e6e37c6e9d54e07bf5a89b12c76e879f40c1ea83cdd82714df1d6f9fec6d",
+      "sha256": "a937756218f5d94226515fcc9b6f00d58d379cad2cfc7a9eb6987a00ff9c50c9",
+      "bytes": 10662,
+      "processing": "silenceremove=start_periods=1:start_duration=0.001:start_threshold=-50dB,atrim=duration=0.24,asetpts=PTS-STARTPTS,afade=t=out:st=0.21:d=0.03; mono PCM16 22050 Hz; no synthesized audio"
+    },
+    {
+      "file": "heal.wav",
+      "sourcePack": "impact-sounds",
+      "sourceFile": "Audio/impactBell_heavy_004.ogg",
+      "sourceSha256": "49fe4fafa2001bd0d312976796824571ca8429851f285997e1327d17bb34fd00",
+      "sha256": "9dce6bbf7be180a62fb1609632605526a335690202fd9e23fde06812ef733a81",
+      "bytes": 13200,
+      "processing": "silenceremove=start_periods=1:start_duration=0.001:start_threshold=-50dB,atrim=duration=0.3,asetpts=PTS-STARTPTS,afade=t=out:st=0.27:d=0.03; mono PCM16 22050 Hz; no synthesized audio"
+    }
+  ]
+}
